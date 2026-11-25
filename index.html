@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бюджет</title>
+
+<style>
+:root {
+  --brown: #695A53;
+  --ivory: #F8F5EC;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--brown);
+  font-family: -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at 10% 30%, #E7DED1, transparent 55%),
+    radial-gradient(circle at 90% 80%, #E5DBD0, transparent 50%),
+    var(--ivory);
+  background-attachment: fixed;
+}
+
+.app {
+  max-width: 480px;
+  margin: auto;
+  padding: 30px 20px 140px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  margin: 0;
+}
+
+h2, h3 {
+  font-weight: 500;
+}
+
+p {
+  line-height: 1.6;
+}
+
+.sparkle {
+  font-size: 32px;
+}
+
+.glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,.75),
+    rgba(255,255,255,.25)
+  );
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 28px;
+  box-shadow:
+    0 8px 32px rgba(105,90,83,.07),
+    inset 0 1px 2px white;
+  padding: 22px;
+}
+
+.balance {
+  text-align: center;
+  padding: 32px 12px;
+}
+
+.balance p {
+  font-size: 14px;
+  margin: 0;
+}
+
+#balance {
+  font-size: clamp(28px, 9vw, 44px);
+  letter-spacing: -1.5px;
+  margin: 20px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0 28px;
+}
+
+button, input {
+  font: inherit;
+  color: var(--brown);
+}
+
+button {
+  cursor: pointer;
+  background: rgba(255,255,255,.5);
+  border: 1px solid white;
+  border-radius: 18px;
+  padding: 14px;
+  transition: transform .2s ease;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+.symbol {
+  display: block;
+  font-size: 34px;
+  margin-bottom: 10px;
+  font-weight: 300;
+}
+
+.actions button {
+  padding: 22px 8px;
+}
+
+.actions strong {
+  display: block;
+  font-weight: 500;
+  font-size: 15px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+  animation: appear .35s ease;
+}
+
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.empty {
+  text-align: center;
+  font-size: 14px;
+  padding: 15px 0;
+}
+
+.navigation {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 36px);
+  max-width: 440px;
+  display: flex;
+  padding: 8px;
+  z-index: 10;
+  border-radius: 30px;
+}
+
+.navigation button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px 4px;
+  font-size: 11px;
+}
+
+.navigation button span {
+  display: block;
+  font-size: 27px;
+  margin-bottom: 6px;
+}
+
+.navigation button.selected {
+  background: rgba(255,255,255,.7);
+  border-radius: 23px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(105,90,83,.18);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(248,245,236,.96);
+  animation: pop .3s ease;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-card h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0 16px;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(105,90,83,.18);
+  border-radius: 15px;
+  font-size: 16px;
+}
+
+input::placeholder {
+  color: var(--brown);
+  opacity: .65;
+}
+
+input:focus {
+  outline: 1px solid var(--brown);
+}
+
+label {
+  font-size: 13px;
+}
+
+.modal-card button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.primary {
+  background: rgba(255,255,255,.9);
+  font-weight: 500;
+}
+
+.transaction {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(105,90,83,.1);
+}
+
+.transaction:last-child {
+  border-bottom: none;
+}
+
+.transaction .info {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.transaction strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.transaction small {
+  display: block;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.transaction .amount {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.transaction button {
+  padding: 5px 10px;
+  font-size: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-header button {
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 28px;
+}
+
+.goal {
+  margin-top: 16px;
+}
+
+.goal img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.goal h3 {
+  overflow-wrap: anywhere;
+}
+
+.progress {
+  height: 8px;
+  background: rgba(105,90,83,.12);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.progress div {
+  height: 100%;
+  background: var(--brown);
+  border-radius: 10px;
+  transition: width .4s ease;
+}
+
+.goal small {
+  display: block;
+  margin: 8px 0;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.goal-actions button:first-child {
+  flex: 1;
+}
+
+.advice {
+  text-align: center;
+  padding: 32px 22px;
+}
+
+.advice .symbol {
+  font-size: 48px;
+}
+
+#confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.particle {
+  position: absolute;
+  top: -25px;
+  animation: fall 2s ease-in forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.balance-update {
+  animation: balancePop .4s ease;
+}
+
+@keyframes balancePop {
+  50% { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+    <h1>Бюджет</h1>
+    <span class="sparkle">✧</span>
+  </header>
+
+  <section id="home" class="screen active">
+
+    <div class="glass balance">
+      <p>Денежные средства на сегодня</p>
+      <h2 id="balance">0,00 ₽</h2>
+    </div>
+
+    <div class="actions">
+      <button class="glass" id="expenseButton">
+        <span class="symbol">−</span>
+        Расход
+        <strong id="expenseTotal">0,00 ₽</strong>
+      </button>
+
+      <button class="glass" id="incomeButton">
+        <span class="symbol">+</span>
+        Доход
+        <strong id="incomeTotal">0,00 ₽</strong>
+      </button>
+    </div>
+
+    <h3>История операций</h3>
+    <div class="glass" id="history"></div>
+
+  </section>
+
+  <section id="savings" class="screen">
+
+    <div class="section-header">
+      <h2>Копилка</h2>
+      <button id="newGoalButton">+</button>
+    </div>
+
+    <div class="glass">
+      <p>Всего накоплено</p>
+      <h2 id="savingsTotal">0,00 ₽</h2>
+    </div>
+
+    <div id="goals"></div>
+
+  </section>
+
+  <section id="assistant" class="screen">
+
+    <h2>Советы от ИИ</h2>
+
+    <div class="glass advice">
+      <span class="symbol">✧</span>
+      <h3>Твой финансовый помощник</h3>
+      <p id="adviceText"></p>
+      <small>Советы на основе правил</small>
+    </div>
+
+    <p class="empty">
+      Маленькие шаги ведут к большим мечтам ♡
+    </p>
+
+  </section>
+
+  <nav class="glass navigation">
+    <button data-screen="home" class="selected">
+      <span>⌂</span>Главная
+    </button>
+
+    <button data-screen="savings">
+      <span>♡</span>Копилка
+    </button>
+
+    <button data-screen="assistant">
+      <span>✧</span>Советы ИИ
+    </button>
+  </nav>
+
+</div>
+
+<div class="modal" id="transactionModal" hidden>
+  <form class="glass modal-card" id="transactionForm">
+    <h2 id="formTitle">Новый доход</h2>
+
+    <label for="amount">Сумма</label>
+    <input id="amount" type="number"
+      inputmode="decimal" min="0.01"
+      step="0.01" placeholder="0,00 ₽" required>
+
+    <label for="reason">Причина</label>
+    <input id="reason" type="text"
+      maxlength="120" placeholder="Описание операции" required>
+
+    <button class="primary" type="submit">Добавить</button>
+    <button type="button" id="cancelTransaction">Отмена</button>
+  </form>
+</div>
+
+<div class="modal" id="goalModal" hidden>
+  <form class="glass modal-card" id="goalForm">
+
+    <h2>Новая копилка</h2>
+
+    <label for="goalPhoto">Фотография мечты</label>
+    <input id="goalPhoto" type="file" accept="image/*">
+
+    <label for="goalName">Название</label>
+    <input id="goalName" maxlength="100"
+      placeholder="Моя мечта" required>
+
+    <label for="goalTarget">Сколько нужно накопить</label>
+    <input id="goalTarget" type="number"
+      inputmode="decimal" min="0.01"
+      step="0.01" placeholder="0,00 ₽" required>
+
+    <label for="goalSaved">Уже накоплено</label>
+    <input id="goalSaved" type="number"
+      inputmode="decimal" min="0"
+      step="0.01" placeholder="0,00 ₽">
+
+    <label for="goalDate">Желаемый срок</label>
+    <input id="goalDate" type="date">
+
+    <button class="primary" type="submit">Создать копилку</button>
+    <button type="button" id="cancelGoal">Отмена</button>
+
+  </form>
+</div>
+
+<div class="modal" id="depositModal" hidden>
+  <form class="glass modal-card" id="depositForm">
+    <h2>Пополнить копилку</h2>
+
+    <input id="depositAmount" type="number"
+      inputmode="decimal" min="0.01"
+      step="0.01" placeholder="0,00 ₽" required>
+
+    <button class="primary" type="submit">Пополнить</button>
+    <button type="button" id="cancelDeposit">Отмена</button>
+  </form>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+(function () {
+
+  const $ = id => document.getElementById(id);
+
+  function load(key) {
+    try {
+      const data = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  let transactions = load("budgetTransactions");
+  let goals = load("budgetGoalsV1");
+  let currentType = "income";
+  let selectedGoal = null;
+
+  function save() {
+    try {
+      localStorage.setItem(
+        "budgetTransactions", JSON.stringify(transactions)
+      );
+      localStorage.setItem(
+        "budgetGoalsV1", JSON.stringify(goals)
+      );
+    } catch {
+      alert("Не удалось сохранить данные в браузере.");
+    }
+  }
+
+  function money(cents) {
+    return (cents / 100).toLocaleString("ru-RU", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + " ₽";
+  }
+
+  function cents(value) {
+    return Math.round(Number(value) * 100);
+  }
+
+  function validAmount(value) {
+    return Number.isSafeInteger(value) && value > 0;
+  }
+
+  function escapeText(value) {
+    const div = document.createElement("div");
+    div.textContent = String(value);
+    return div.innerHTML;
+  }
+
+  function showModal(id) {
+    $(id).hidden = false;
+  }
+
+  function hideModal(id) {
+    $(id).hidden = true;
+  }
+
+  document.querySelectorAll("[data-screen]").forEach(button => {
+    button.addEventListener("click", () => {
+
+      document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+      });
+
+      document.querySelectorAll("[data-screen]").forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      $(button.dataset.screen).classList.add("active");
+      button.classList.add("selected");
+      window.scrollTo(0, 0);
+    });
+  });
+
+  function openTransaction(type) {
+    currentType = type;
+    $("transactionForm").reset();
+
+    $("formTitle").textContent =
+      type === "income" ? "Новый доход" : "Новый расход";
+
+    showModal("transactionModal");
+  }
+
+  $("incomeButton").onclick = () => openTransaction("income");
+  $("expenseButton").onclick = () => openTransaction("expense");
+
+  $("cancelTransaction").onclick = () => {
+    hideModal("transactionModal");
+  };
+
+  $("transactionForm").onsubmit = event => {
+    event.preventDefault();
+
+    const amount = cents($("amount").value);
+    const reason = $("reason").value.trim();
+
+    if (!validAmount(amount) || !reason) {
+      alert("Укажи сумму и причину операции.");
+      return;
+    }
+
+    transactions.unshift({
+      id: Date.now() + Math.random(),
+      type: currentType,
+      amount: amount,
+      reason: reason,
+      date: new Date().toLocaleDateString("ru-RU")
+    });
+
+    save();
+    hideModal("transactionModal");
+    renderBudget();
+
+    $("balance").classList.remove("balance-update");
+    void $("balance").offsetWidth;
+    $("balance").classList.add("balance-update");
+
+    if (currentType === "income") {
+      celebrate();
+    }
+  };
+
+  function totals() {
+    let income = 0;
+    let expense = 0;
+
+    transactions.forEach(item => {
+      if (item.type === "income") {
+        income += item.amount;
+      } else {
+        expense += item.amount;
+      }
+    });
+
+    return { income, expense };
+  }
+
+  function renderBudget() {
+    const { income, expense } = totals();
+
+    $("balance").textContent = money(income - expense);
+    $("incomeTotal").textContent = money(income);
+    $("expenseTotal").textContent = money(expense);
+
+    const history = $("history");
+    history.replaceChildren();
+
+    if (!transactions.length) {
+      history.innerHTML =
+        '<p class="empty">Пока нет операций</p>';
+    }
+
+    transactions.forEach(item => {
+
+      const row = document.createElement("div");
+      row.className = "transaction";
+
+      row.innerHTML = `
+        <div class="info">
+          <strong>${escapeText(item.reason)}</strong>
+          <small>${escapeText(item.date)}</small>
+        </div>
+        <span class="amount">
+          ${item.type === "income" ? "+" : "−"}${money(item.amount)}
+        </span>
+      `;
+
+      const remove = document.createElement("button");
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "Удалить операцию");
+
+      remove.onclick = () => {
+        if (confirm("Удалить эту операцию?")) {
+          transactions = transactions.filter(t => t.id !== item.id);
+          save();
+          renderBudget();
+        }
+      };
+
+      row.appendChild(remove);
+      history.appendChild(row);
+    });
+
+    renderAdvice();
+  }
+
+  function renderAdvice() {
+
+    if (!transactions.length) {
+      $("adviceText").textContent =
+        "Добавь первую операцию, чтобы получить совет.";
+      return;
+    }
+
+    const { income, expense } = totals();
+    const last = transactions[0];
+
+    let advice;
+
+    if (expense > income) {
+      advice = "Сейчас расходы превышают доходы. Попробуй проверить ближайшие обязательные платежи и отложить необязательные покупки.";
+    } else if (last.type === "income") {
+      advice = "Ты молодец! Подумай, какую часть дохода можно отложить на мечту. Если обязательные расходы покрыты, не забывай радовать себя.";
+    } else if (income > 0 && expense / income > 0.8) {
+      advice = "Большая часть учтённых доходов уже потрачена. Возможно, стоит немного сократить необязательные покупки.";
+    } else {
+      advice = "Расход учтён. Если покупка была необходимой, всё хорошо. Перед следующей необязательной покупкой можно дать себе время подумать.";
+    }
+
+    $("adviceText").textContent = advice;
+  }
+
+  $("newGoalButton").onclick = () => {
+    $("goalForm").reset();
+    showModal("goalModal");
+  };
+
+  $("cancelGoal").onclick = () => hideModal("goalModal");
+
+  function readPhoto(file) {
+    return new Promise((resolve, reject) => {
+
+      if (!file) {
+        resolve("");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onerror = reject;
+
+      reader.onload = () => {
+        const img = new Image();
+
+        img.onerror = reject;
+
+        img.onload = () => {
+          const scale = Math.min(
+            1, 600 / Math.max(img.width, img.height)
+          );
+
+          const canvas = document.createElement("canvas");
+
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+
+          canvas.getContext("2d").drawImage(
+            img, 0, 0, canvas.width, canvas.height
+          );
+
+          resolve(canvas.toDataURL("image/jpeg", .7));
+        };
+
+        img.src = reader.result;
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  $("goalForm").onsubmit = async event => {
+    event.preventDefault();
+
+    const name = $("goalName").value.trim();
+    const target = cents($("goalTarget").value);
+    const saved = cents($("goalSaved").value || 0);
+    const date = $("goalDate").value;
+
+    if (!name || !validAmount(target) ||
+        !Number.isSafeInteger(saved) || saved < 0) {
+      alert("Проверь название и суммы.");
+      return;
+    }
+
+    const submit = event.target.querySelector('[type="submit"]');
+    submit.disabled = true;
+
+    try {
+      const photo = await readPhoto($("goalPhoto").files[0]);
+
+      goals.unshift({
+        id: Date.now() + Math.random(),
+        name, target, saved, date, photo
+      });
+
+      save();
+      hideModal("goalModal");
+      renderGoals();
+
+    } catch {
+      alert("Не удалось загрузить фото. Попробуй другую фотографию.");
+    } finally {
+      submit.disabled = false;
+    }
+  };
+
+  function renderGoals() {
+
+    const container = $("goals");
+    container.replaceChildren();
+
+    $("savingsTotal").textContent =
+      money(goals.reduce((sum, goal) => sum + goal.saved, 0));
+
+    if (!goals.length) {
+      container.innerHTML = `
+        <div class="glass goal empty">
+          <span class="symbol">♡</span>
+          У каждой мечты есть начало
+          <p>Нажми +, чтобы создать копилку</p>
+        </div>
+      `;
+    }
+
+    goals.forEach(goal => {
+
+      const card = document.createElement("div");
+      card.className = "glass goal";
+
+      if (goal.photo) {
+        const image = document.createElement("img");
+        image.src = goal.photo;
+        image.alt = goal.name;
+        card.appendChild(image);
+      }
+
+      const percent = Math.min(100, goal.saved / goal.target * 100);
+
+      const info = document.createElement("div");
+
+      info.innerHTML = `
+        <h3>${escapeText(goal.name)}</h3>
+        <h2>${money(goal.saved)}</h2>
+        <small>Цель: ${money(goal.target)}</small>
+        <div class="progress">
+          <div style="width:${percent}%"></div>
+        </div>
+        <small>Накоплено: ${Math.round(percent)}%</small>
+        <small>Осталось: ${money(Math.max(0, goal.target - goal.saved))}</small>
+        <small>Срок: ${escapeText(goal.date ? goal.date.split("-").reverse().join(".") : "Не указан")}</small>
+      `;
+
+      card.appendChild(info);
+
+      const actions = document.createElement("div");
+      actions.className = "goal-actions";
+
+      const add = document.createElement("button");
+      add.textContent = "Пополнить";
+
+      add.onclick = () => {
+        selectedGoal = goal.id;
+        $("depositForm").reset();
+        showModal("depositModal");
+      };
+
+      const remove = document.createElement("button");
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "Удалить копилку");
+
+      remove.onclick = () => {
+        if (confirm("Удалить копилку?")) {
+          goals = goals.filter(g => g.id !== goal.id);
+          save();
+          renderGoals();
+        }
+      };
+
+      actions.append(add, remove);
+      card.appendChild(actions);
+      container.appendChild(card);
+    });
+  }
+
+  $("cancelDeposit").onclick = () => hideModal("depositModal");
+
+  $("depositForm").onsubmit = event => {
+    event.preventDefault();
+
+    const amount = cents($("depositAmount").value);
+    const goal = goals.find(g => g.id === selectedGoal);
+
+    if (!goal || !validAmount(amount)) return;
+
+    const wasComplete = goal.saved >= goal.target;
+
+    goal.saved += amount;
+
+    save();
+    hideModal("depositModal");
+    renderGoals();
+
+    if (!wasComplete && goal.saved >= goal.target) {
+      celebrate();
+    }
+  };
+
+  function celebrate() {
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const layer = $("confetti");
+    layer.replaceChildren();
+
+    const colors = [
+      "#D5B98C", "#F1DDB8",
+      "#C8B4A5", "#E8D5BC",
+      "#FFFFFF"
+    ];
+
+    for (let i = 0; i < 65; i++) {
+
+      const particle = document.createElement("div");
+
+      particle.className = "particle";
+      particle.style.left = Math.random() * 100 + "%";
+      particle.style.width = 5 + Math.random() * 6 + "px";
+      particle.style.height = 6 + Math.random() * 9 + "px";
+      particle.style.background = colors[i % colors.length];
+      particle.style.borderRadius = "3px";
+      particle.style.animationDelay = Math.random() * .6 + "s";
+
+      layer.appendChild(particle);
+
+      particle.addEventListener("animationend", () => {
+        particle.remove();
+      });
+    }
+  }
+
+  renderBudget();
+  renderGoals();
+
+})();
+</script>
+
+</body>
+</html>
